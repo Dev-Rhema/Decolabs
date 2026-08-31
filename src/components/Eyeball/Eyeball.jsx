@@ -57,7 +57,6 @@ export default function Eyeball({ lidFill = "#e6a677" }) {
   const uid = useId();
   const eyeClipId = `eyeClip-${uid}`;
   const scleraClipId = `scleraClip-${uid}`;
-  const sketchFilterId = `sketchStroke-${uid}`;
   const svgRef = useRef(null);
   const pupilGroupRef = useRef(null);
 
@@ -89,28 +88,6 @@ export default function Eyeball({ lidFill = "#e6a677" }) {
           <clipPath id={scleraClipId}>
             <path d={SCLERA_PATH} />
           </clipPath>
-          <filter
-            id={sketchFilterId}
-            x="-20%"
-            y="-20%"
-            width="140%"
-            height="140%"
-          >
-            <feTurbulence
-              type="fractalNoise"
-              baseFrequency="0.012"
-              numOctaves="3"
-              seed="4"
-              result="noise"
-            />
-            <feDisplacementMap
-              in="SourceGraphic"
-              in2="noise"
-              scale="10"
-              xChannelSelector="R"
-              yChannelSelector="G"
-            />
-          </filter>
         </defs>
 
         {/* eyelid fill: defaults to decoHead's skin tone; pass a different
@@ -148,7 +125,6 @@ export default function Eyeball({ lidFill = "#e6a677" }) {
             stroke="#000000"
             strokeWidth="32"
             strokeLinecap="round"
-            filter={`url(#${sketchFilterId})`}
           />
         </g>
 
@@ -159,7 +135,6 @@ export default function Eyeball({ lidFill = "#e6a677" }) {
           stroke="#000000"
           strokeWidth="37"
           strokeLinejoin="round"
-          filter={`url(#${sketchFilterId})`}
         />
       </svg>
     </div>
