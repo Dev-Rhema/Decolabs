@@ -82,12 +82,14 @@ export const Welcome = () => {
       const originX = vertexPx.reduce((sum, [x]) => sum + x, 0) / 3;
       const originY = vertexPx.reduce((sum, [, y]) => sum + y, 0) / 3;
 
-      // A small margin (2%) beyond the farthest vertex so the fully-
+      // A small margin (10%) beyond the farthest vertex so the fully-
       // revealed circle clears the pyramid's edge with a bit of room
       // instead of ending exactly on it.
       const maxR =
         1.02 *
-        Math.max(...vertexPx.map(([x, y]) => Math.hypot(x - originX, y - originY)));
+        Math.max(
+          ...vertexPx.map(([x, y]) => Math.hypot(x - originX, y - originY)),
+        );
 
       const logoRect = logoEl.getBoundingClientRect();
 
@@ -222,7 +224,13 @@ export const Welcome = () => {
             width="20000"
             height="20000"
           >
-            <rect x="-10000" y="-10000" width="20000" height="20000" fill="white" />
+            <rect
+              x="-10000"
+              y="-10000"
+              width="20000"
+              height="20000"
+              fill="white"
+            />
             <circle
               className="pyramid-hole"
               cx={geo.originX}
