@@ -180,26 +180,63 @@ export const Welcome = () => {
         </div>
       </div>
 
-      {/* Holds the reveal mask's shapes; renders nothing itself. Its own
-          width/height are 0 (just to stay out of layout), so the mask's
-          x/y/width/height below are given as generous fixed numbers
-          instead of "100%" — a percentage here would resolve against this
-          0x0 host SVG and collapse the whole mask to nothing. */}
-      <svg width="0" height="0" style={{ position: "absolute" }} aria-hidden>
+      {/* The one general dim overlay — covers and dims the whole page, logo
+          included, masked by #reveal-mask below. Hovering the pyramid
+          grows a bright circle from the pyramid's own center outward, so
+          the pyramid stays centered inside it, capped so it stops once it
+          just covers the pyramid; once that finishes, just the logo's own
+          silhouette (not a rectangle around it, not the full page width)
+          lights up from the bottom edge upward. Leaving reverses both
+          immediately.
+
+          Rendered as a real SVG <rect> using SVG's own `mask` attribute
+          (not CSS `mask-image` on an HTML div — Safari has long been
+          unreliable resolving a `userSpaceOnUse` SVG mask against an
+          ordinary HTML box), and the mask's <defs> live in this SAME <svg>
+          root as the <rect> that references them — Safari also has a
+          history of failing to resolve url(#id) SVG-resource references
+          (masks, filters, clipPaths) across two separate <svg> roots, even
+          same-document. Keeping everything in one root sidesteps that too.
+          No viewBox is set, so 1 user unit = 1 CSS px here, matching the
+          getBoundingClientRect pixel values these shapes are built from. */}
+      <svg
+        className="pointer-events-none fixed inset-0 z-30"
+        width="100%"
+        height="100%"
+        aria-hidden
+      >
         <defs>
-          {/* Alpha-only submask of the logo artwork itself: mask-type alpha
-              (rather than the default luminance) means every drawn pixel —
-              the white lettering AND its black outline/shadow — counts as
-              "kept", not just the light-colored ones, so the hole below
-              traces the actual silhouette rather than just the letterforms'
-              fills. */}
-          <mask id="logo-art-alpha" style={{ maskType: "alpha" }}>
+          {/* Forces every drawn pixel of the logo to solid white while
+              leaving its alpha channel untouched (feColorMatrix's last
+              column is the constant added to each channel, so R/G/B are
+              pinned to 1 regardless of input; alpha passes through as-is).
+              We rely on this instead of `mask-type: alpha` on the <mask>
+              below — that property has spotty support outside Chromium
+              (Firefox/Safari have a history of silently ignoring it and
+              falling back to luminance mode) — because a plain luminance
+              mask fed solid-white content naturally reduces to "kept
+              wherever the source had any alpha", which is exactly the
+              alpha-only behavior we want, via a filter primitive that's
+              supported everywhere. Without this, the logo's black
+              outline/shadow (near-zero luminance) would drop out of the
+              mask and only its lighter fill would show. */}
+          <filter id="logo-art-whiten" colorInterpolationFilters="sRGB">
+            <feColorMatrix
+              type="matrix"
+              values="0 0 0 0 1
+                      0 0 0 0 1
+                      0 0 0 0 1
+                      0 0 0 1 0"
+            />
+          </filter>
+          <mask id="logo-art-alpha">
             <image
               href={decoLogoImg}
               x={geo.logoImgX}
               y={geo.logoImgY}
               width={geo.logoImgW}
               height={geo.logoImgH}
+              filter="url(#logo-art-whiten)"
             />
           </mask>
 
@@ -252,23 +289,17 @@ export const Welcome = () => {
             </g>
           </mask>
         </defs>
-      </svg>
 
-      {/* The one general dim overlay — covers and dims the whole page, logo
-          included, masked by #reveal-mask above. Hovering the pyramid
-          grows a bright circle from the pyramid's own center outward, so
-          the pyramid stays centered inside it, capped so it stops once it
-          just covers the pyramid; once that finishes, just the logo's own
-          silhouette (not a rectangle around it, not the full page width)
-          lights up from the bottom edge upward. Leaving reverses both
-          immediately. */}
-      <div
-        className="pointer-events-none fixed inset-0 z-30 bg-black/90"
-        style={{
-          maskImage: "url(#reveal-mask)",
-          WebkitMaskImage: "url(#reveal-mask)",
-        }}
-      />
+        <rect
+          x="0"
+          y="0"
+          width="100%"
+          height="100%"
+          fill="black"
+          fillOpacity="0.9"
+          mask="url(#reveal-mask)"
+        />
+      </svg>
     </div>
   );
 };
