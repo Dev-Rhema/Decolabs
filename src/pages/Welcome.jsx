@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import decoLogoImg from "../assets/welcomeImgs/deco logo.png";
 import decoPyramidImg from "../assets/welcomeImgs/decoPyramid.png";
 import Eyeball from "../components/Eyeball/Eyeball";
+import TextType from "../components/TextType/TextType";
 
 // Must match the pyramid circle's CSS transition duration below — the
 // logo's own light-up is scheduled to start right as the pyramid's finishes.
@@ -158,6 +159,29 @@ export const Welcome = () => {
         alt="Deco!"
         className="relative z-20 shrink-0 mx-auto mt-4 md:mt-6 w-40 sm:w-52 md:w-72 lg:w-80"
       />
+
+      {/* Sits above the dim overlay (z-40 > the overlay's z-30) so it stays
+          fully readable regardless of hover state, rather than getting
+          dimmed along with everything outside the reveal circle. Absolute
+          + pinned to the root's own bottom edge instead of a flex child, so
+          it doesn't compete with the pyramid for the centered flex-1
+          space. font-grobold reuses the logo's own self-hosted face — this
+          is otherwise unused elsewhere since "Deco!" is a drawn PNG, not
+          live text. */}
+      <div className="absolute z-40 inset-x-0 bottom-4 md:bottom-6 text-center">
+        <TextType
+          text={["Coming soon...", "Stay tuned..."]}
+          as="p"
+          typingSpeed={75}
+          pauseDuration={1400}
+          deletingSpeed={40}
+          loop={true}
+          showCursor={true}
+          cursorCharacter="|"
+          className="font-grobold uppercase tracking-[0.18em] text-lg sm:text-xl md:text-2xl text-white/70"
+          cursorClassName="text-white/70"
+        />
+      </div>
 
       <div className="relative z-20 flex-1 min-h-0 flex items-center justify-center">
         <div
