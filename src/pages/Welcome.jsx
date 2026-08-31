@@ -76,11 +76,11 @@ export const Welcome = () => {
       // sit well outside the triangle, which was making the "fully
       // revealed" circle spill past the pyramid.
       const pyrRect = pyrEl.getBoundingClientRect();
-      // A small margin (10%) beyond the farthest vertex so the fully-
+      // A small margin (5%) beyond the farthest vertex so the fully-
       // revealed circle clears the pyramid's edge with a bit of room
       // instead of ending exactly on it.
       const maxR =
-        1.1 *
+        1.05 *
         Math.max(
           ...PYRAMID_TRIANGLE_PCT.map(([xPct, yPct]) =>
             Math.hypot(
