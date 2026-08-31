@@ -106,8 +106,23 @@ export const Welcome = () => {
       });
     }
     update();
+    // Vite's production build emits the app's <script type="module"> BEFORE
+    // its <link rel="stylesheet"> in index.html (dev mode injects CSS via
+    // JS instead, so this only shows up in the built/deployed app). A
+    // module script isn't guaranteed to wait for a stylesheet that comes
+    // AFTER it in the document, so on a slow/cold load this effect can run
+    // — and measure the pyramid's box — before Tailwind's CSS has actually
+    // applied, producing an oversized circle that then never re-measures.
+    // Re-running once on the `load` event (which does wait for every
+    // subresource, styles included) catches and corrects that; it's the
+    // same fix as manually resizing the window, which is why that "fixed"
+    // it by hand.
+    window.addEventListener("load", update);
     window.addEventListener("resize", update);
-    return () => window.removeEventListener("resize", update);
+    return () => {
+      window.removeEventListener("load", update);
+      window.removeEventListener("resize", update);
+    };
   }, []);
 
   // Sequencing: entering the pyramid starts its own reveal immediately; the
