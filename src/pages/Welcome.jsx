@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
-import decoLogoImg from "../assets/deco logo.png";
-import decoPyramidImg from "../assets/decoPyramid.png";
+import decoLogoImg from "../assets/welcomeImgs/deco logo.png";
+import decoPyramidImg from "../assets/welcomeImgs/decoPyramid.png";
 import Eyeball from "../components/Eyeball/Eyeball";
 
 // Must match the pyramid circle's CSS transition duration below — the
@@ -16,6 +16,19 @@ const PYRAMID_REVEAL_MS = 900;
 // manually-traced left/right fraction.
 const LOGO_ART_TOP_FRAC = 84 / 1024;
 const LOGO_ART_BOTTOM_FRAC = 937 / 1024;
+
+// The pyramid's actual drawn triangle corners, as [x%, y%] of the pyramid
+// box's own width/height (traced from the artwork), not its rectangular
+// bounding box. Single source for both the reveal circle's max-radius calc
+// and the hit-region's clip-path below, so the two can't drift apart.
+const PYRAMID_TRIANGLE_PCT = [
+  [54.1, 1.4],
+  [5.5, 93.7],
+  [95.2, 89.2],
+];
+const PYRAMID_CLIP_PATH = `polygon(${PYRAMID_TRIANGLE_PCT.map(
+  ([x, y]) => `${x}% ${y}%`,
+).join(", ")})`;
 
 export const Welcome = () => {
   const [isPyramidHovered, setIsPyramidHovered] = useState(false);
@@ -58,26 +71,21 @@ export const Welcome = () => {
       const originX = eyeRect.left + eyeRect.width / 2;
       const originY = eyeRect.top + eyeRect.height / 2;
 
-      // Use the pyramid's actual drawn triangle corners (same three points
-      // as the hit-region's clip-path below), not its rectangular bounding
-      // box — the box's empty corners sit well outside the triangle, which
-      // was making the "fully revealed" circle spill past the pyramid.
+      // Use the pyramid's actual drawn triangle corners (PYRAMID_TRIANGLE_PCT
+      // above), not its rectangular bounding box — the box's empty corners
+      // sit well outside the triangle, which was making the "fully
+      // revealed" circle spill past the pyramid.
       const pyrRect = pyrEl.getBoundingClientRect();
-      const vertices = [
-        [0.541, 0.014],
-        [0.055, 0.937],
-        [0.952, 0.892],
-      ];
       // A small margin (10%) beyond the farthest vertex so the fully-
       // revealed circle clears the pyramid's edge with a bit of room
       // instead of ending exactly on it.
       const maxR =
         1.1 *
         Math.max(
-          ...vertices.map(([fx, fy]) =>
+          ...PYRAMID_TRIANGLE_PCT.map(([xPct, yPct]) =>
             Math.hypot(
-              pyrRect.left + fx * pyrRect.width - originX,
-              pyrRect.top + fy * pyrRect.height - originY,
+              pyrRect.left + (xPct / 100) * pyrRect.width - originX,
+              pyrRect.top + (yPct / 100) * pyrRect.height - originY,
             ),
           ),
         );
@@ -165,9 +173,7 @@ export const Welcome = () => {
               over the pyramid rather than its transparent corners. */}
           <div
             className="absolute inset-0"
-            style={{
-              clipPath: "polygon(54.1% 1.4%, 5.5% 93.7%, 95.2% 89.2%)",
-            }}
+            style={{ clipPath: PYRAMID_CLIP_PATH }}
             onMouseEnter={handlePyramidEnter}
             onMouseLeave={handlePyramidLeave}
           />
