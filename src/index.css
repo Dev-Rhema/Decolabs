@@ -12,6 +12,19 @@
   --font-grobold: "Grobold", sans-serif;
 }
 
+/* Custom site-wide cursor: the deco hand/eye mark, cropped to its own
+   drawn bounds and downscaled to a normal cursor size (source art is
+   1409x1117 — used at native size it would cover a good chunk of the
+   screen). Hotspot (3 0) is the fingertip, traced from the resized art's
+   own topmost opaque pixel, so clicks register from the fingertip like a
+   normal pointer's tip rather than the image's top-left corner. `auto`
+   fallback keeps context-sensitive cursors (text caret, resize handles,
+   etc.) wherever a browser can't load the image, instead of forcing the
+   hand everywhere via `pointer`. */
+body {
+  cursor: url("./assets/cursorPointer.png") 3 0, auto;
+}
+
 /* The reveal mask's two "hole" shapes (see #reveal-mask in Welcome.jsx).
    SVG geometry properties (r, y, height, ...) can be transitioned by the
    browser like any other CSS property, so toggling them via React props is
