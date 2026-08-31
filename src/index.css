@@ -1,0 +1,27 @@
+@import "tailwindcss";
+
+@font-face {
+  font-family: "Grobold";
+  src: url("./assets/fonts/GROBOLD.ttf") format("truetype");
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+@theme {
+  --font-grobold: "Grobold", sans-serif;
+}
+
+/* The reveal mask's two "hole" shapes (see #reveal-mask in Welcome.jsx).
+   SVG geometry properties (r, y, height, ...) can be transitioned by the
+   browser like any other CSS property, so toggling them via React props is
+   enough — no JS/rAF animation loop needed. */
+.pyramid-hole {
+  transition: r 900ms ease;
+}
+
+.logo-hole {
+  transition:
+    y 700ms ease,
+    height 700ms ease;
+}
