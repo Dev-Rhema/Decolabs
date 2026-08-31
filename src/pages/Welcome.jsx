@@ -34,7 +34,6 @@ export const Welcome = () => {
   const [isPyramidHovered, setIsPyramidHovered] = useState(false);
   const [isLogoRevealed, setIsLogoRevealed] = useState(false);
   const logoRevealTimeout = useRef(null);
-  const eyeRef = useRef(null);
   const pyramidRef = useRef(null);
   const logoRef = useRef(null);
   const [geo, setGeo] = useState({
@@ -52,7 +51,7 @@ export const Welcome = () => {
   // A single overlay (below) dims the whole page, including the logo. It's
   // masked by one SVG <mask> (in the hidden <svg> below) holding a white
   // "stay dimmed" base rect plus two black "hole" shapes painted on top —
-  // a circle around the eyeball for the pyramid, and a rect scoped to the
+  // a circle around the pyramid's own center, and a rect scoped to the
   // logo's own artwork box (not the whole page width, and not its full
   // image element including transparent padding) for its bottom-to-top
   // wipe. Ordinary SVG painting (not CSS mask-composite, which turned out
@@ -62,33 +61,33 @@ export const Welcome = () => {
   // otherwise move on their own, so no need to track every frame.
   useEffect(() => {
     function update() {
-      const eyeEl = eyeRef.current;
       const pyrEl = pyramidRef.current;
       const logoEl = logoRef.current;
-      if (!eyeEl || !pyrEl || !logoEl) return;
-
-      const eyeRect = eyeEl.getBoundingClientRect();
-      const originX = eyeRect.left + eyeRect.width / 2;
-      const originY = eyeRect.top + eyeRect.height / 2;
+      if (!pyrEl || !logoEl) return;
 
       // Use the pyramid's actual drawn triangle corners (PYRAMID_TRIANGLE_PCT
       // above), not its rectangular bounding box — the box's empty corners
       // sit well outside the triangle, which was making the "fully
       // revealed" circle spill past the pyramid.
       const pyrRect = pyrEl.getBoundingClientRect();
-      // A small margin (5%) beyond the farthest vertex so the fully-
+      const vertexPx = PYRAMID_TRIANGLE_PCT.map(([xPct, yPct]) => [
+        pyrRect.left + (xPct / 100) * pyrRect.width,
+        pyrRect.top + (yPct / 100) * pyrRect.height,
+      ]);
+
+      // The triangle's own centroid (not the eyeball's position, and not
+      // the rectangular bounding box's center, which is skewed by the
+      // artwork's asymmetric padding) — so the reveal circle grows evenly
+      // around the pyramid and the pyramid ends up centered inside it.
+      const originX = vertexPx.reduce((sum, [x]) => sum + x, 0) / 3;
+      const originY = vertexPx.reduce((sum, [, y]) => sum + y, 0) / 3;
+
+      // A small margin (2%) beyond the farthest vertex so the fully-
       // revealed circle clears the pyramid's edge with a bit of room
       // instead of ending exactly on it.
       const maxR =
-        1.05 *
-        Math.max(
-          ...PYRAMID_TRIANGLE_PCT.map(([xPct, yPct]) =>
-            Math.hypot(
-              pyrRect.left + (xPct / 100) * pyrRect.width - originX,
-              pyrRect.top + (yPct / 100) * pyrRect.height - originY,
-            ),
-          ),
-        );
+        1.02 *
+        Math.max(...vertexPx.map(([x, y]) => Math.hypot(x - originX, y - originY)));
 
       const logoRect = logoEl.getBoundingClientRect();
 
@@ -146,7 +145,7 @@ export const Welcome = () => {
       <div className="relative z-20 flex-1 min-h-0 flex items-center justify-center">
         <div
           ref={pyramidRef}
-          className="relative h-[55%] sm:h-[65%] md:h-[88%]"
+          className="relative h-[42%] sm:h-[49%] md:h-[67%] -mt-12 sm:-mt-20 md:-mt-32"
           style={{
             aspectRatio: "1355 / 1161",
           }}
@@ -154,7 +153,6 @@ export const Welcome = () => {
           <img src={decoPyramidImg} alt="" className="w-full h-full block" />
 
           <div
-            ref={eyeRef}
             className="absolute"
             style={{
               left: "52.4%",
@@ -250,11 +248,12 @@ export const Welcome = () => {
 
       {/* The one general dim overlay — covers and dims the whole page, logo
           included, masked by #reveal-mask above. Hovering the pyramid
-          grows a bright circle from the eyeball's own center outward,
-          capped so it stops once it just covers the pyramid; once that
-          finishes, just the logo's own silhouette (not a rectangle around
-          it, not the full page width) lights up from the bottom edge
-          upward. Leaving reverses both immediately. */}
+          grows a bright circle from the pyramid's own center outward, so
+          the pyramid stays centered inside it, capped so it stops once it
+          just covers the pyramid; once that finishes, just the logo's own
+          silhouette (not a rectangle around it, not the full page width)
+          lights up from the bottom edge upward. Leaving reverses both
+          immediately. */}
       <div
         className="pointer-events-none fixed inset-0 z-30 bg-black/90"
         style={{
